@@ -1,5 +1,5 @@
 # pumpy
-Python RS–232 interface for Harvard Pump 11/Pump 11 Plus. Written by [Thomas W. Phillips][TWP]
+Python RS–232 interface for Harvard Pump 11/Pump 11 Plus syringe pump. Written by [Thomas W. Phillips][TWP]
 
 ## Requirements
 
@@ -9,7 +9,7 @@ Requires [PySerial][]. Developed on Mac OS 10.9.1 with Python 2.7.3 ([Enthought 
 
 Two possibilites:
 
-1. Command line interface. Run `python pumpy.py -h' for options.
+1. Command line interface. Run `python pumpy.py -h` for options.
 2. Using `import pumpy` in another script then calling the functions. For example:
 
 ```python
