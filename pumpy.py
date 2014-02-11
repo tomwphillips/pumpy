@@ -1,9 +1,34 @@
 from __future__ import print_function 
 import sys
 import serial
+import argparse
+
+# Couple of convenience functions
 
 def error(*objs):
     print("ERROR: ", *objs, file=sys.stderr)
+
+def removecrud(string):
+    # Remove trailing zeros after decimal places from a string
+    if "." in string:
+        while string[-1] == '0':
+            string = string[0:-1]
+
+    # Remove pointless decimal points
+    if string[-1] == ".":
+        string = string[:-1]
+
+    # Remove leading spaces
+    while string[0] == ' ':
+        string = string[1:]
+
+    # Remove trailing spaces
+    while string[-1] == ' ':
+        string = string[:-2]
+
+    return string
+
+# Pump object that does everything
 
 class Pump:
     def __init__(self,comport,address = 0,verbose = False):
@@ -87,43 +112,33 @@ class Pump:
             error('Set flow rate: unexpected response from pump after writing flow rate')
             
     def infuse(self):
-        if self.diameter is None:
-            error('Diameter not set. Set diameter.')
-        elif self.flowrate is None:
-            error('Flow rate not set. Set flow rate.')
-        else:
-            self.serialcon.write(self.address + 'RUN\r')
+        self.serialcon.write(self.address + 'RUN\r')
+        resp = self.serialcon.read(5)
+        while resp[-1] != '>':
+            if resp[-1] == '<': # wrong direction
+                self.serialcon.write(self.address + 'REV\r')
+            else:
+                error('Infuse command: unexpected response from pump',resp)
+                break
             resp = self.serialcon.read(5)
-            while resp[-1] != '>':
-                if resp[-1] == '<': # wrong direction
-                    self.serialcon.write(self.address + 'REV\r')
-                else:
-                    error('Infuse command: unexpected response from pump',resp)
-                    break
-                resp = self.serialcon.read(5)
 
-            if self.verbose:
-                print('Infusing')
+        if self.verbose:
+            print('Infusing')
 
     def withdraw(self):
-        if self.diameter is None:
-            error('Diameter not set. Set diameter.')
-        elif self.flowrate is None:
-            error('Flow rate not set. Set flow rate.')
-        else:
-            self.serialcon.write(self.address + 'REV\r')
+        self.serialcon.write(self.address + 'REV\r')
+        resp = self.serialcon.read(5)
+        
+        while resp[-1] != '<':
+            if resp[-1] == ':': # pump not running
+                self.serialcon.write(self.address + 'RUN\r')
+            elif resp[-1] == '>': # wrong direction
+                self.serialcon.write(self.address + 'REV\r')
+            
             resp = self.serialcon.read(5)
-            
-            while resp[-1] != '<':
-                if resp[-1] == ':': # pump not running
-                    self.serialcon.write(self.address + 'RUN\r')
-                elif resp[-1] == '>': # wrong direction
-                    self.serialcon.write(self.address + 'REV\r')
-                
-                resp = self.serialcon.read(5)
-            
-            if self.verbose:
-                print('Withdrawing')
+        
+        if self.verbose:
+            print('Withdrawing')
 
     def stop(self):
         self.serialcon.write(self.address + 'STP\r')
@@ -149,36 +164,33 @@ class Pump:
                 print('Target volume set to',targetvolume,'uL')
     
     def waituntiltarget(self):
-        if self.targetvolume is None:
-            error('Target volume not set.')
-        else:
-            # counter - need it to check if it's the first loop
-            i = 0
-        
-            while True:
-                # Read once
-                self.serialcon.write(self.address + 'VOL\r')
-                resp1 = self.serialcon.read(15)
+        # counter - need it to check if it's the first loop
+        i = 0
+    
+        while True:
+            # Read once
+            self.serialcon.write(self.address + 'VOL\r')
+            resp1 = self.serialcon.read(15)
 
-                if ':' in resp1 and i == 0:
-                    error('Pump is not infusing/withdrawing. Infuse or withdraw then run waituntiltarget().')
-                elif ':' in resp1 and i != 0:
-                    # pump has already come to a halt
-                    if self.verbose:
-                        print('Target volume reached.')
-                    break
+            if ':' in resp1 and i == 0:
+                error('Pump is not infusing/withdrawing. Infuse or withdraw then run waituntiltarget().')
+            elif ':' in resp1 and i != 0:
+                # pump has already come to a halt
+                if self.verbose:
+                    print('Target volume reached.')
+                break
 
-                # Read again
-                self.serialcon.write(self.address + 'VOL\r')
-                resp2 = self.serialcon.read(15)
+            # Read again
+            self.serialcon.write(self.address + 'VOL\r')
+            resp2 = self.serialcon.read(15)
 
-                # Check if they're the same - if they are, break, otherwise continue
-                if resp1 == resp2:
-                    if self.verbose:
-                        print('Target volume reached.')
-                    break
+            # Check if they're the same - if they are, break, otherwise continue
+            if resp1 == resp2:
+                if self.verbose:
+                    print('Target volume reached.')
+                break
 
-                i = i+1
+            i = i+1
     
     # For debugging
     def close(self):
@@ -188,22 +200,52 @@ class Pump:
         self.serialcon.flushOutput()
         self.serialcon.flushInput()
 
-def removecrud(string):
-    # Remove trailing zeros after decimal places from a string
-    if "." in string:
-        while string[-1] == '0':
-            string = string[0:-1]
+# Command line options
+# Run with -h flag to see help
 
-    # Remove pointless decimal points
-    if string[-1] == ".":
-        string = string[:-1]
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Command line interface to pumpy module for control of Harvard Pump 11')
+    parser.add_argument('port',help='serial port')
+    parser.add_argument('address',help='pump address',type=int)
+    parser.add_argument('-v','--verbose',help='verbose mode',action='store_true')
+    parser.add_argument('-d',dest='diameter',help='set syringe diameter',type=int)
+    parser.add_argument('-f',dest='flowrate',help='set flow rate')
+    parser.add_argument('-t',dest='targetvolume',help='set target volume')
+    parser.add_argument('-w',dest='wait',help='wait for target volume to be reached; use with -infuse or -withdraw',action='store_true')
+    # TODO: only allow -w if infuse, withdraw or stop have been specified
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('-infuse',action='store_true')
+    group.add_argument('-withdraw',action="store_true")
+    group.add_argument('-stop',action="store_true")
+    args = parser.parse_args()
 
-    # Remove leading spaces
-    while string[0] == ' ':
-        string = string[1:]
+    # Command precedence:
+    # 1. stop
+    # 2. set diameter
+    # 3. set flow rate
+    # 4. set target
+    # 5. infuse|withdraw (+ wait for target volume)
 
-    # Remove trailing spaces
-    while string[-1] == ' ':
-        string = string[:-2]
+    pump = Pump(args.port,args.address,args.verbose)
 
-    return string
+    if args.stop:
+        pump.stop()
+
+    if args.diameter:
+        pump.setdiameter(args.diameter)
+
+    if args.flowrate:
+        pump.setflowrate(args.flowrate)
+
+    if args.targetvolume:
+        pump.settargetvolume(args.targetvolume)
+
+    if args.infuse:
+        pump.infuse()
+        if args.wait:
+            pump.waituntiltarget()
+
+    if args.withdraw:
+        pump.withdraw()
+        if args.wait:
+            pump.waituntiltarget()
