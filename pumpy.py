@@ -17,6 +17,10 @@ def removecrud(string):
     # Remove pointless decimal points
     if string[-1] == ".":
         string = string[:-1]
+    
+    # Remove leading zeros
+    while string[0] == '0':
+        string = string[1:]
 
     # Remove leading spaces
     while string[0] == ' ':
@@ -39,6 +43,7 @@ class Pump:
         self.diameter = None
         self.flowrate = None
         self.targetvolume = None
+        self.clearbuffers()
 
     def __repr__(self):
         string = ''
@@ -69,7 +74,7 @@ class Pump:
             # check if diameter has been set correctlry
             self.serialcon.write(self.address + 'DIA\r')
             resp = self.serialcon.read(15)
-            returned_diameter = removecrud(resp[4:9])
+            returned_diameter = removecrud(resp[3:9])
             
             # Check diameter was set accurately
             if returned_diameter != diameter:
@@ -98,7 +103,7 @@ class Pump:
             # Flow rate was sent, check it was set correctly
             self.serialcon.write(self.address + 'RAT\r')
             resp = self.serialcon.read(150)
-            returned_flowrate = removecrud(resp[2:-5])
+            returned_flowrate = removecrud(resp[2:8])
 
             if returned_flowrate != flowrate:
                 error('Set flowrate does not match flowrate on pump.\n','Set:',flowrate,'Returned:',returned_flowrate)
@@ -153,16 +158,16 @@ class Pump:
         self.serialcon.write(self.address + 'MLT' + str(targetvolume) + '\r')
         resp = self.serialcon.read(5)
 
-        # response should be XX:, XX>, XX< where XX is address
-        resp = resp[-3:] # resp starts with CR/LF/etc, get rid
-
-        if resp[0:2] != self.address:
+        # response should be CRLFXX:, CRLFXX>, CRLFXX< where XX is address
+        # Pump11 replies with leading zeros, e.g. 03, but PHD2000 misbehaves and 
+        # returns without and gives an extra CR. Use int() to deal with
+        if int(resp[-3:-1]) != int(self.address):
             error('Response has incorrect address')
         elif resp[-1] == ':' or resp[-1] == '>' or resp[-1] == '<':
             self.targetvolume = float(targetvolume)
             if self.verbose:
                 print('Target volume set to',targetvolume,'uL')
-    
+
     def waituntiltarget(self):
         # counter - need it to check if it's the first loop
         i = 0
@@ -200,13 +205,30 @@ class Pump:
         self.serialcon.flushOutput()
         self.serialcon.flushInput()
 
+class PHD2000(Pump):
+    def stop(self):
+        self.serialcon.write(self.address + 'STP\r')
+        resp = self.serialcon.read(5)
+        
+        if resp[-1] != '*':
+            print('-1',resp[-1])
+            error('Pump not stopped',resp)
+        elif self.verbose:
+            print('Stopped')
+
+    def settargetvolume(self,targetvolume):
+        # PHD2000 expects target volume in mL not uL like the Pump11
+        # Convert to mL then return to Pump.settargetvolume()
+          Pump.settargetvolume(self,targetvolume/1000.0)
+
 # Command line options
 # Run with -h flag to see help
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Command line interface to pumpy module for control of Harvard Pump 11')
+    parser = argparse.ArgumentParser(description='Command line interface to pumpy module for control of Harvard Pump 11 (default) or PHD2000 syringe pumps')
     parser.add_argument('port',help='serial port')
     parser.add_argument('address',help='pump address',type=int)
+    parser.add_argument('-PHD2000',help='To control PHD2000',action='store_true')
     parser.add_argument('-v','--verbose',help='verbose mode',action='store_true')
     parser.add_argument('-d',dest='diameter',help='set syringe diameter',type=int)
     parser.add_argument('-f',dest='flowrate',help='set flow rate')
@@ -226,7 +248,10 @@ if __name__ == '__main__':
     # 4. set target
     # 5. infuse|withdraw (+ wait for target volume)
 
-    pump = Pump(args.port,args.address,args.verbose)
+    if args.PHD2000:
+        pump = PHD2000(args.port,args.address,args.verbose)
+    else:
+        pump = Pump(args.port,args.address,args.verbose)
 
     if args.stop:
         pump.stop()
