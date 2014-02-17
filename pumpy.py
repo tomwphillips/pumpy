@@ -44,6 +44,7 @@ class Pump:
         self.flowrate = None
         self.targetvolume = None
         self.clearbuffers()
+        self.serialcon.close()
 
     def __repr__(self):
         string = ''
@@ -52,6 +53,8 @@ class Pump:
         return string
 
     def setdiameter(self,diameter):
+        self.open()
+
         if diameter > 35 or diameter < 0.1:
             error('Syringe diameter must be between 0.1 and 35 mm')
 
@@ -86,7 +89,11 @@ class Pump:
         else:
             error('Pump response not understood.')
 
+        self.close()
+
     def setflowrate(self,flowrate):
+        self.open()
+
         flowrate = str(flowrate)
 
         if len(flowrate) > 5:
@@ -115,8 +122,12 @@ class Pump:
             error('Flow rate out of range')
         else:
             error('Set flow rate: unexpected response from pump after writing flow rate')
-            
+        
+        self.close()
+
     def infuse(self):
+        self.open()
+
         self.serialcon.write(self.address + 'RUN\r')
         resp = self.serialcon.read(5)
         while resp[-1] != '>':
@@ -129,8 +140,12 @@ class Pump:
 
         if self.verbose:
             print('Infusing')
+        
+        self.close()
 
     def withdraw(self):
+        self.open()
+        
         self.serialcon.write(self.address + 'REV\r')
         resp = self.serialcon.read(5)
         
@@ -145,7 +160,11 @@ class Pump:
         if self.verbose:
             print('Withdrawing')
 
+        self.close()
+
     def stop(self):
+        self.open()
+
         self.serialcon.write(self.address + 'STP\r')
         resp = self.serialcon.read(5)
         
@@ -154,7 +173,11 @@ class Pump:
         elif self.verbose:
             print('Stopped')
 
+        self.close()
+
     def settargetvolume(self,targetvolume):
+        self.open()
+
         self.serialcon.write(self.address + 'MLT' + str(targetvolume) + '\r')
         resp = self.serialcon.read(5)
 
@@ -168,7 +191,11 @@ class Pump:
             if self.verbose:
                 print('Target volume set to',targetvolume,'uL')
 
+        self.close()
+
     def waituntiltarget(self):
+        self.open()
+
         # counter - need it to check if it's the first loop
         i = 0
     
@@ -196,17 +223,26 @@ class Pump:
                 break
 
             i = i+1
+
+        self.close()
     
     # For debugging
+    def open(self):
+        if not self.serialcon.isOpen():
+            self.serialcon.open()
+
     def close(self):
         self.serialcon.close()
 
     def clearbuffers(self):
+        self.open()
         self.serialcon.flushOutput()
         self.serialcon.flushInput()
+        self.close()
 
 class PHD2000(Pump):
     def stop(self):
+        self.open()
         self.serialcon.write(self.address + 'STP\r')
         resp = self.serialcon.read(5)
         
@@ -215,6 +251,7 @@ class PHD2000(Pump):
             error('Pump not stopped',resp)
         elif self.verbose:
             print('Stopped')
+        self.close()
 
     def settargetvolume(self,targetvolume):
         # PHD2000 expects target volume in mL not uL like the Pump11
