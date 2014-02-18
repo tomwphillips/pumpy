@@ -32,18 +32,28 @@ def removecrud(string):
 
     return string
 
-# Pump object that does everything
+class Chain:
+    def __init__(self,comport):
+        self.serialcon = serial.Serial(port = comport,stopbits = serial.STOPBITS_TWO,parity = serial.PARITY_NONE,timeout=2)
+        self.clearbuffers()
 
+    # For debugging
+    def close(self):
+        self.serialcon.close()
+
+    def clearbuffers(self):
+        self.serialcon.flushOutput()
+        self.serialcon.flushInput()
+
+# Pump object that does everything
 class Pump:
-    def __init__(self,comport,address = 0,verbose = False):
-        self.comport = comport;
-        self.serialcon = serial.Serial(port = self.comport,stopbits = serial.STOPBITS_TWO,parity = serial.PARITY_NONE,timeout=2)
+    def __init__(self,chain,address = 0,verbose = False):
+        self.serialcon = chain.serialcon;
         self.address = '{0:02.0f}'.format(address)
         self.verbose = verbose
         self.diameter = None
         self.flowrate = None
         self.targetvolume = None
-        self.clearbuffers()
 
     def __repr__(self):
         string = ''
@@ -197,14 +207,6 @@ class Pump:
 
             i = i+1
     
-    # For debugging
-    def close(self):
-        self.serialcon.close()
-
-    def clearbuffers(self):
-        self.serialcon.flushOutput()
-        self.serialcon.flushInput()
-
 class PHD2000(Pump):
     def stop(self):
         self.serialcon.write(self.address + 'STP\r')
@@ -241,6 +243,8 @@ if __name__ == '__main__':
     group.add_argument('-stop',action="store_true")
     args = parser.parse_args()
 
+    chain = Chain(args.port)
+
     # Command precedence:
     # 1. stop
     # 2. set diameter
@@ -249,9 +253,9 @@ if __name__ == '__main__':
     # 5. infuse|withdraw (+ wait for target volume)
 
     if args.PHD2000:
-        pump = PHD2000(args.port,args.address,args.verbose)
+        pump = PHD2000(chain,args.address,args.verbose)
     else:
-        pump = Pump(args.port,args.address,args.verbose)
+        pump = Pump(chain,args.address,args.verbose)
 
     if args.stop:
         pump.stop()
