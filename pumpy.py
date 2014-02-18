@@ -218,10 +218,20 @@ class PHD2000(Pump):
         elif self.verbose:
             print('Stopped')
 
-    def settargetvolume(self,targetvolume):
-        # PHD2000 expects target volume in mL not uL like the Pump11
-        # Convert to mL then return to Pump.settargetvolume()
-          Pump.settargetvolume(self,targetvolume/1000.0)
+    def settargetvolume(self,targetvolume):    
+        # PHD2000 expects target volume in mL not uL like the Pump11, so convert to mL
+        self.serialcon.write(self.address + 'MLT' + str(targetvolume/1000.0) + '\r')
+        resp = self.serialcon.read(5)
+
+        # response should be CRLFXX:, CRLFXX>, CRLFXX< where XX is address
+        # Pump11 replies with leading zeros, e.g. 03, but PHD2000 misbehaves and 
+        # returns without and gives an extra CR. Use int() to deal with
+        if int(resp[-3:-1]) != int(self.address):
+            error('Response has incorrect address')
+        elif resp[-1] == ':' or resp[-1] == '>' or resp[-1] == '<':
+            self.targetvolume = float(targetvolume/1000.0)
+            if self.verbose:
+                print('Target volume set to',targetvolume,'uL')
 
 # Command line options
 # Run with -h flag to see help
