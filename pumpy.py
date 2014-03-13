@@ -230,7 +230,13 @@ class PHD2000(Pump):
 
     def settargetvolume(self,targetvolume):    
         # PHD2000 expects target volume in mL not uL like the Pump11, so convert to mL
-        self.serialcon.write(self.address + 'MLT' + str(targetvolume/1000.0) + '\r')
+        targetvolume = str(targetvolume/1000.0)
+
+        if len(targetvolume) > 5:
+            targetvolume = targetvolume[0:5]
+            print('Warning: target volume truncated to',targetvolume,'uL')
+
+        self.serialcon.write(self.address + 'MLT' + targetvolume  + '\r')
         resp = self.serialcon.read(5)
 
         # response should be CRLFXX:, CRLFXX>, CRLFXX< where XX is address
@@ -239,9 +245,10 @@ class PHD2000(Pump):
         if int(resp[-3:-1]) != int(self.address):
             error('Response has incorrect address')
         elif resp[-1] == ':' or resp[-1] == '>' or resp[-1] == '<':
-            self.targetvolume = float(targetvolume/1000.0)
+            # Been set correctly, so put it back in the object (as uL, not mL)
+            self.targetvolume = float(targetvolume)*1000.0
             if self.verbose:
-                print('Target volume set to',targetvolume,'uL')
+                print('Target volume set to',self.targetvolume,'uL')
 
 # Command line options
 # Run with -h flag to see help
