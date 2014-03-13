@@ -7,6 +7,7 @@ import argparse
 
 def error(*objs):
     print("ERROR: ", *objs, file=sys.stderr)
+    sys.exit()
 
 def removecrud(string):
     # Remove trailing zeros after decimal places from a string
@@ -33,13 +34,22 @@ def removecrud(string):
     return string
 
 class Chain:
-    def __init__(self,comport):
+    def __init__(self,comport,verbose = False):
+        self.verbose = verbose
         self.serialcon = serial.Serial(port = comport,stopbits = serial.STOPBITS_TWO,parity = serial.PARITY_NONE,timeout=2)
         self.clearbuffers()
+        if self.serialcon.isOpen() and verbose:
+            print('Chain:  created on',comport)
+        elif not self.serialcon.isOpen():
+            error('Chain: not created on',comport)
 
     # For debugging
     def close(self):
         self.serialcon.close()
+        if self.serialcon.isOpen():
+            error('Chain: ERROR - could not close serial port')
+        elif self.verbose:
+            print('Chain: serial port closed OK')
 
     def clearbuffers(self):
         self.serialcon.flushOutput()
