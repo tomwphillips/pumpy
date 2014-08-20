@@ -258,7 +258,19 @@ class PHD2000(Pump):
             self.targetvolume = float(targetvolume)*1000.0
             logging.info('Pump %s: target volume set to %s uL',self.name,self.targetvolume)
 
-class MightyMini(Pump):
+class MightyMini():
+
+    def __init__(self,chain,name = None):
+        self.name = name
+        self.serialcon = chain.serialcon
+
+        logging.info('Pump %s: created at address %s on %s',self.name,self.address,self.serialcon.port)
+
+    def __repr__(self):
+        string = ''
+        for attr in self.__dict__:
+            string += '%s: %s\n' % (attr,self.__dict__[attr]) 
+        return string
 
     def setdiameter(self,diameter):
         logging.error('Set diameter not applicable to pump %s', self.name)
@@ -353,7 +365,7 @@ if __name__ == '__main__':
     if args.PHD2000:
         pump = PHD2000(chain,args.address,name='PHD2000')
     elif args.MightyMini:
-        pump = MightyMini(chain,args.address,name='MightyMini')
+        pump = MightyMini(chain,name='MightyMini')
     else:
         pump = Pump(chain,args.address,name='11')
 
