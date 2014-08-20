@@ -31,9 +31,9 @@ def removecrud(string):
     return string
 
 class Chain:
-    def __init__(self,comport,verbose = False):
+    def __init__(self,comport,verbose = False,stopbits=serial.STOPBITS_TWO):
         self.verbose = verbose
-        self.serialcon = serial.Serial(port = comport,stopbits = serial.STOPBITS_TWO,parity = serial.PARITY_NONE,timeout=2)
+        self.serialcon = serial.Serial(port = comport,stopbits = stopbits,parity = serial.PARITY_NONE,timeout=2)
         self.clearbuffers()
         if self.serialcon.isOpen():
             logging.info('Chain %s: created',comport)
