@@ -332,9 +332,9 @@ class MightyMini():
 # Run with -h flag to see help
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Command line interface to pumpy module for control of Harvard Pump 11 (default) or PHD2000 syringe pumps')
+    parser = argparse.ArgumentParser(description='Command line interface to pumpy module for control of Harvard Pump 11 (default) or PHD2000 syringe pumps, or SSI Mighty Mini Pump')
     parser.add_argument('port',help='serial port')
-    parser.add_argument('address',help='pump address',type=int)
+    parser.add_argument('address',help='pump address (Harvard pumps)',type=int,nargs='?',default="00")
     parser.add_argument('-d',dest='diameter',help='set syringe diameter',type=int)
     parser.add_argument('-f',dest='flowrate',help='set flow rate')
     parser.add_argument('-t',dest='targetvolume',help='set target volume')
