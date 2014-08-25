@@ -31,9 +31,9 @@ def removecrud(string):
     return string
 
 class Chain:
-    def __init__(self,comport,verbose = False):
+    def __init__(self,comport,verbose = False,stopbits=serial.STOPBITS_TWO):
         self.verbose = verbose
-        self.serialcon = serial.Serial(port = comport,stopbits = serial.STOPBITS_TWO,parity = serial.PARITY_NONE,timeout=2)
+        self.serialcon = serial.Serial(port = comport,stopbits = stopbits,parity = serial.PARITY_NONE,timeout=2)
         self.clearbuffers()
         if self.serialcon.isOpen():
             logging.info('Chain %s: created',comport)
@@ -258,14 +258,83 @@ class PHD2000(Pump):
             self.targetvolume = float(targetvolume)*1000.0
             logging.info('Pump %s: target volume set to %s uL',self.name,self.targetvolume)
 
+class MightyMini():
+
+    def __init__(self,chain,name = None):
+        self.name = name
+        self.serialcon = chain.serialcon
+
+        logging.info('Pump %s: created on %s',self.name,self.serialcon.port)
+
+    def __repr__(self):
+        string = ''
+        for attr in self.__dict__:
+            string += '%s: %s\n' % (attr,self.__dict__[attr]) 
+        return string
+
+    def setdiameter(self,diameter):
+        logging.error('Set diameter not applicable to pump %s', self.name)
+        return None
+
+    def setflowrate(self,flowrate):
+        flowrate = int(flowrate)
+        if flowrate > 9999:
+            flowrate = 9999
+            logging.warning('Pump %s: flow rate truncated to %s uL/min',self.name,flowrate)
+
+        self.serialcon.write('FM' + "{:04d}".format(flowrate))
+        resp = self.serialcon.read(3)
+        self.serialcon.flushInput()
+        if len(resp) == 0:
+            logging.error('Pump %s: no response to setflowrate',self.name)
+        elif resp[0] == 'O' and resp[1] == 'K':
+            # flow rate sent, check it is correct
+            self.serialcon.write('CC')
+            resp = self.serialcon.read(11)
+            returned_flowrate = int(float(resp[5:-1])*1000)
+            if returned_flowrate != flowrate:
+                logging.error('Pump %s: set flowrate (%s uL/min) does not match flowrate returned by pump (%s uL/min)',self.name,flowrate,returned_flowrate)
+            elif returned_flowrate == flowrate:
+                self.flowrate = returned_flowrate
+                logging.info('Pump %s: flow rate set to %s uL/min',self.name,self.flowrate)
+        else:
+            logging.error('Pump %s: error setting flow rate (%s uL/min)',self.name,flowrate)
+
+    def infuse(self):
+        self.serialcon.write('RU')
+        resp = self.serialcon.read(3)
+        if len(resp) == 0:
+            logging.error('Pump %s: no response to infuse',self.name)
+        elif resp[0] == 'O' and resp[1] == 'K':
+            logging.info('Pump %s: infusing',self.name)
+
+    def withdraw(self):
+        logging.error('Set withdraw not applicable to pump %s', self.name)
+        return None
+
+    def stop(self):
+        self.serialcon.write('ST')
+        resp = self.serialcon.read(3)
+        if len(resp) == 0:
+            logging.error('Pump %s: no response to stop',self.name)
+        elif resp[0] == 'O' and resp[1] == 'K':
+            logging.info('Pump %s: stopping',self.name)
+
+    def settargetvolume(self,targetvolume):
+        logging.error('Set target volume not applicable to pump %s', self.name)
+        return None
+
+    def waituntiltarget(self):
+        logging.error('waituntiltarget not applicable to pump %s', self.name)
+        return None
+
 # Command line options
 # Run with -h flag to see help
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Command line interface to pumpy module for control of Harvard Pump 11 (default) or PHD2000 syringe pumps')
+    parser = argparse.ArgumentParser(description='Command line interface to pumpy module for control of Harvard Pump 11 (default) or PHD2000 syringe pumps, or SSI Mighty Mini Pump')
     parser.add_argument('port',help='serial port')
-    parser.add_argument('address',help='pump address',type=int)
-    parser.add_argument('-PHD2000',help='To control PHD2000',action='store_true')
+    parser.add_argument('address',help='pump address (Harvard pumps)',type=int,nargs='?',default=0)
     parser.add_argument('-d',dest='diameter',help='set syringe diameter',type=int)
     parser.add_argument('-f',dest='flowrate',help='set flow rate')
     parser.add_argument('-t',dest='targetvolume',help='set target volume')
@@ -275,9 +344,16 @@ if __name__ == '__main__':
     group.add_argument('-infuse',action='store_true')
     group.add_argument('-withdraw',action="store_true")
     group.add_argument('-stop',action="store_true")
+
+    pumpgroup = parser.add_mutually_exclusive_group()
+    pumpgroup.add_argument('-PHD2000',help='To control PHD2000',action='store_true')
+    pumpgroup.add_argument('-MightyMini',help='To control Mighty Mini',action='store_true')
     args = parser.parse_args()
 
-    chain = Chain(args.port)
+    if args.MightyMini:
+        chain = Chain(args.port, stopbits=serial.STOPBITS_ONE)
+    else:
+        chain = Chain(args.port)
 
     # Command precedence:
     # 1. stop
@@ -288,6 +364,8 @@ if __name__ == '__main__':
 
     if args.PHD2000:
         pump = PHD2000(chain,args.address,name='PHD2000')
+    elif args.MightyMini:
+        pump = MightyMini(chain,name='MightyMini')
     else:
         pump = Pump(chain,args.address,name='11')
 
