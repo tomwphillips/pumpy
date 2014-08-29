@@ -3,7 +3,7 @@ Python RS–232 interface for Harvard Pump 11, Pump 11 Plus and PHD2000 syringe 
 
 ## Requirements
 
-Requires [PySerial 2.6][]. Developed/tested on Mac OS 10.9.1 and Windows 7 with Python 2.7.3 ([Enthought Canopy][] 7.3.1 64-bit).
+Requires [PySerial][]. Developed/tested on Mac OS 10.9.1 and Windows 7 with Python 2.7.3 ([Enthought Canopy][] 7.3.1 64-bit) and PySerial 2.6.
 
 ## Usage
 
