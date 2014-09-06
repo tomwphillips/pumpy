@@ -1,5 +1,5 @@
 ﻿# pumpy
-Python RS–232 interface for Harvard Pump 11, Pump 11 Plus, PHD2000 syringe pumps and Mighty Mini piston pump. Written by [Thomas W. Phillips](https://github.com/tomwphillips) and support for Mighty Mini pump by [Sam Macbeth](https://github.com/sammacbeth), , Imperial College London. Uses Python [`logging`](https://docs.python.org/2/library/logging.html) to record all operations.
+Python RS–232 interface for Harvard Pump 11, Pump 11 Plus, PHD2000 syringe pumps and Mighty Mini piston pump. Written by [Thomas W. Phillips](https://github.com/tomwphillips) and support for Mighty Mini pump by [Sam Macbeth](https://github.com/sammacbeth), Imperial College London. Uses Python [`logging`](https://docs.python.org/2/library/logging.html) to record all operations.
 
 ## Licence
 
