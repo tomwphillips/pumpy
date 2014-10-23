@@ -7,12 +7,18 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 def removecrud(string):
-    # Remove trailing zeros after decimal places from a string
+    """Return string without useless information.
+
+     Return string with trailing zeros after a decimal place, trailing decimal 
+     points, and leading and trailing spaces removed.
+     """
+
+    # Remove trailing zeros after decimal place
     if "." in string:
         while string[-1] == '0':
             string = string[0:-1]
 
-    # Remove pointless decimal points
+    # Remove decimal point with nothing after it
     if string[-1] == ".":
         string = string[:-1]
     
