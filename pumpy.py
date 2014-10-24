@@ -36,9 +36,9 @@ def remove_crud(string):
     return string
 
 class Chain:
-    def __init__(self,comport,verbose=False,stopbits=serial.STOPBITS_TWO):
+    def __init__(self, comport, verbose=False, stopbits=serial.STOPBITS_TWO):
         self.verbose = verbose
-        self.serialcon = serial.Serial(port=comport,stopbits=stopbits,parity=serial.PARITY_NONE,timeout=2)
+        self.serialcon = serial.Serial(port=comport, stopbits=stopbits, parity=serial.PARITY_NONE, timeout=2)
         self.clearbuffers()
         if self.serialcon.isOpen():
             logging.info('Chain %s: created',comport)
@@ -60,7 +60,7 @@ class Chain:
 
 # Pump object that does everything
 class Pump:
-    def __init__(self,chain,address=0, name=None):
+    def __init__(self, chain, address=0, name=None):
         self.name = name
         self.serialcon = chain.serialcon
         self.address = '{0:02.0f}'.format(address)
@@ -76,7 +76,7 @@ class Pump:
             string += '%s: %s\n' % (attr,self.__dict__[attr]) 
         return string
 
-    def setdiameter(self,diameter):
+    def setdiameter(self, diameter):
         if diameter > 35 or diameter < 0.1:
             logging.error('Pump %s: %s mm out of diameter range. Must be between 0.1-35 mm.',self.name,diameter)
             return None
@@ -115,7 +115,7 @@ class Pump:
         else:
             logging.error('Pump %s: unknown response',self.name)
 
-    def setflowrate(self,flowrate):
+    def setflowrate(self, flowrate):
         flowrate = str(flowrate)
 
         if len(flowrate) > 5:
@@ -188,7 +188,7 @@ class Pump:
         else:
             logging.info('Pump %s: stopped',self.name)
 
-    def settargetvolume(self,targetvolume):
+    def settargetvolume(self, targetvolume):
         self.serialcon.write(self.address + 'MLT' + str(targetvolume) + '\r')
         resp = self.serialcon.read(5)
 
@@ -242,7 +242,7 @@ class PHD2000(Pump):
         else:
             logging.info('Pump %s: stopped',self.name)
 
-    def settargetvolume(self,targetvolume):    
+    def settargetvolume(self, targetvolume):
         # PHD2000 expects target volume in mL not uL like the Pump11, so convert to mL
         targetvolume = str(float(targetvolume)/1000.0)
 
@@ -265,7 +265,7 @@ class PHD2000(Pump):
 
 class MightyMini():
 
-    def __init__(self,chain,name=None):
+    def __init__(self, chain, name=None):
         self.name = name
         self.serialcon = chain.serialcon
 
@@ -277,11 +277,11 @@ class MightyMini():
             string += '%s: %s\n' % (attr,self.__dict__[attr]) 
         return string
 
-    def setdiameter(self,diameter):
+    def setdiameter(self, diameter):
         logging.error('Set diameter not applicable to pump %s', self.name)
         return None
 
-    def setflowrate(self,flowrate):
+    def setflowrate(self, flowrate):
         flowrate = int(flowrate)
         if flowrate > 9999:
             flowrate = 9999
@@ -325,7 +325,7 @@ class MightyMini():
         elif resp[0] == 'O' and resp[1] == 'K':
             logging.info('Pump %s: stopping',self.name)
 
-    def settargetvolume(self,targetvolume):
+    def settargetvolume(self, targetvolume):
         logging.error('Set target volume not applicable to pump %s', self.name)
         return None
 
