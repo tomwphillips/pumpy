@@ -36,9 +36,9 @@ def remove_crud(string):
     return string
 
 class Chain:
-    def __init__(self,comport,verbose = False,stopbits=serial.STOPBITS_TWO):
+    def __init__(self,comport,verbose=False,stopbits=serial.STOPBITS_TWO):
         self.verbose = verbose
-        self.serialcon = serial.Serial(port = comport,stopbits = stopbits,parity = serial.PARITY_NONE,timeout=2)
+        self.serialcon = serial.Serial(port=comport,stopbits=stopbits,parity=serial.PARITY_NONE,timeout=2)
         self.clearbuffers()
         if self.serialcon.isOpen():
             logging.info('Chain %s: created',comport)
@@ -60,7 +60,7 @@ class Chain:
 
 # Pump object that does everything
 class Pump:
-    def __init__(self,chain,address = 0, name = None):
+    def __init__(self,chain,address=0, name=None):
         self.name = name
         self.serialcon = chain.serialcon
         self.address = '{0:02.0f}'.format(address)
@@ -265,7 +265,7 @@ class PHD2000(Pump):
 
 class MightyMini():
 
-    def __init__(self,chain,name = None):
+    def __init__(self,chain,name=None):
         self.name = name
         self.serialcon = chain.serialcon
 
