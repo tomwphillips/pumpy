@@ -205,6 +205,7 @@ class Pump:
             logging.info('%s: stopped',self.name)
 
     def settargetvolume(self, targetvolume):
+        """Set the target volume to infuse or withdraw (microlitres)."""
         self.serialcon.write(self.address + 'MLT' + str(targetvolume) + '\r')
         resp = self.serialcon.read(5)
 
@@ -220,6 +221,7 @@ class Pump:
             logging.info('%s: target volume set to %s uL',self.name,self.targetvolume)
 
     def waituntiltarget(self):
+        """Wait until the pump has reached its target volume."""
         logging.info('%s: waiting until target reached',self.name)
         # counter - need it to check if it's the first loop
         i = 0
