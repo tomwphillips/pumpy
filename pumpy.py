@@ -69,7 +69,7 @@ class Pump:
         self.flowrate = None
         self.targetvolume = None
 
-        logging.info('Pump %s: created at address %s on %s',self.name,self.address,self.serialcon.port)
+        logging.info('%s: created at address %s on %s',self.name,self.address,self.serialcon.port)
 
     def __repr__(self):
         string = ''
@@ -79,7 +79,7 @@ class Pump:
 
     def setdiameter(self, diameter):
         if diameter > 35 or diameter < 0.1:
-            logging.error('Pump %s: %s mm out of diameter range. Must be between 0.1-35 mm.',self.name,diameter)
+            logging.error('%s: %s mm out of diameter range. Must be between 0.1-35 mm.',self.name,diameter)
             return None
 
         diameter = str(diameter)
@@ -92,7 +92,7 @@ class Pump:
                 diameter = diameter[0:4]
 
             diameter = remove_crud(diameter)
-            logging.warning('Pump %s: diameter truncated to %s mm',self.name,diameter)
+            logging.warning('%s: diameter truncated to %s mm',self.name,diameter)
         else:
             diameter = remove_crud(diameter)
 
@@ -109,12 +109,12 @@ class Pump:
             
             # Check diameter was set accurately
             if returned_diameter != diameter:
-                logging.error('Pump %s: set diameter (%s mm) does not match diameter returned by pump (%s mm)',self.name,diameter,returned_diameter)
+                logging.error('%s: set diameter (%s mm) does not match diameter returned by pump (%s mm)',self.name,diameter,returned_diameter)
             elif returned_diameter == diameter:
                 self.diameter = float(returned_diameter)
-                logging.info('Pump %s: diameter set to %s mm',self.name,self.diameter)
+                logging.info('%s: diameter set to %s mm',self.name,self.diameter)
         else:
-            logging.error('Pump %s: unknown response',self.name)
+            logging.error('%s: unknown response',self.name)
 
     def setflowrate(self, flowrate):
         flowrate = str(flowrate)
@@ -122,7 +122,7 @@ class Pump:
         if len(flowrate) > 5:
             flowrate = flowrate[0:5]
             flowrate = remove_crud(flowrate)
-            logging.warning('Pump %s: flow rate truncated to %s uL/min',self.name,flowrate)
+            logging.warning('%s: flow rate truncated to %s uL/min',self.name,flowrate)
         else:
             flowrate = remove_crud(flowrate)
 
@@ -136,14 +136,14 @@ class Pump:
             returned_flowrate = remove_crud(resp[2:8])
 
             if returned_flowrate != flowrate:
-                logging.error('Pump %s: set flowrate (%s uL/min) does not match flowrate returned by pump (%s uL/min)',self.name,flowrate,returned_flowrate)
+                logging.error('%s: set flowrate (%s uL/min) does not match flowrate returned by pump (%s uL/min)',self.name,flowrate,returned_flowrate)
             elif returned_flowrate == flowrate:
                 self.flowrate = returned_flowrate
-                logging.info('Pump %s: flow rate set to %s uL/min',self.name,self.flowrate)
+                logging.info('%s: flow rate set to %s uL/min',self.name,self.flowrate)
         elif 'OOR' in resp:
-            logging.error('Pump %s: flow rate (%s uL/min) is out of range',self.name,flowrate)
+            logging.error('%s: flow rate (%s uL/min) is out of range',self.name,flowrate)
         else:
-            logging.error('Pump %s: unknown response',self.name)
+            logging.error('%s: unknown response',self.name)
             
     def infuse(self):
         self.serialcon.write(self.address + 'RUN\r')
@@ -153,13 +153,13 @@ class Pump:
                 if resp[-1] == '<': # wrong direction
                     self.serialcon.write(self.address + 'REV\r')
                 else:
-                    logging.error('Pump %s: unexpected response to infuse',self.name)
+                    logging.error('%s: unexpected response to infuse',self.name)
                     break
 
                 resp = self.serialcon.read(5)
-                logging.info('Pump %s: infusing',self.name)
+                logging.info('%s: infusing',self.name)
         else:
-            logging.error('Pump %s: empty response to infuse',self.name)
+            logging.error('%s: empty response to infuse',self.name)
 
     def withdraw(self):
         self.serialcon.write(self.address + 'REV\r')
@@ -172,22 +172,22 @@ class Pump:
                 elif resp[-1] == '>': # wrong direction
                     self.serialcon.write(self.address + 'REV\r')
                 else:
-                    logging.error('Pump %s: unexpected response to withdraw',self.name)
+                    logging.error('%s: unexpected response to withdraw',self.name)
                     break
 
                 resp = self.serialcon.read(5)
-                logging.info('Pump %s: withdrawing',self.name)
+                logging.info('%s: withdrawing',self.name)
         else:
-            logging.error('Pump %s: empty response to withdraw',self.name)
+            logging.error('%s: empty response to withdraw',self.name)
 
     def stop(self):
         self.serialcon.write(self.address + 'STP\r')
         resp = self.serialcon.read(5)
         
         if len(resp) == 0 or resp[-1] != ':':
-            logging.error('Pump %s: unexpected response to stop',self.name)
+            logging.error('%s: unexpected response to stop',self.name)
         else:
-            logging.info('Pump %s: stopped',self.name)
+            logging.info('%s: stopped',self.name)
 
     def settargetvolume(self, targetvolume):
         self.serialcon.write(self.address + 'MLT' + str(targetvolume) + '\r')
@@ -197,15 +197,15 @@ class Pump:
         # Pump11 replies with leading zeros, e.g. 03, but PHD2000 misbehaves and 
         # returns without and gives an extra CR. Use int() to deal with
         if len(resp) == 0:
-            logging.error('Pump %s: empty response',self.name)
+            logging.error('%s: empty response',self.name)
         elif int(resp[-3:-1]) != int(self.address):
-            logging.error('Pump %s: response has incorrect address',self.name)
+            logging.error('%s: response has incorrect address',self.name)
         elif resp[-1] == ':' or resp[-1] == '>' or resp[-1] == '<':
             self.targetvolume = float(targetvolume)
-            logging.info('Pump %s: target volume set to %s uL',self.name,self.targetvolume)
+            logging.info('%s: target volume set to %s uL',self.name,self.targetvolume)
 
     def waituntiltarget(self):
-        logging.info('Pump %s: waiting until target reached',self.name)
+        logging.info('%s: waiting until target reached',self.name)
         # counter - need it to check if it's the first loop
         i = 0
     
@@ -215,10 +215,10 @@ class Pump:
             resp1 = self.serialcon.read(15)
 
             if ':' in resp1 and i == 0:
-                logging.error('Pump %s: not infusing/withdrawing - infuse or withdraw first',self.name)
+                logging.error('%s: not infusing/withdrawing - infuse or withdraw first',self.name)
             elif ':' in resp1 and i != 0:
                 # pump has already come to a halt
-                logging.info('Pump %s: target volume reached, stopped',self.name)
+                logging.info('%s: target volume reached, stopped',self.name)
                 break
 
             # Read again
@@ -227,7 +227,7 @@ class Pump:
 
             # Check if they're the same - if they are, break, otherwise continue
             if resp1 == resp2:
-                logging.info('Pump %s: target volume reached, stopped',self.name)
+                logging.info('%s: target volume reached, stopped',self.name)
                 break
 
             i = i+1
@@ -239,9 +239,9 @@ class PHD2000(Pump):
         resp = self.serialcon.read(5)
         
         if resp[-1] != '*':
-            logging.error('Pump %s: unexpected response to stop',self.name)
+            logging.error('%s: unexpected response to stop',self.name)
         else:
-            logging.info('Pump %s: stopped',self.name)
+            logging.info('%s: stopped',self.name)
 
     def settargetvolume(self, targetvolume):
         # PHD2000 expects target volume in mL not uL like the Pump11, so convert to mL
@@ -249,7 +249,7 @@ class PHD2000(Pump):
 
         if len(targetvolume) > 5:
             targetvolume = targetvolume[0:5]
-            logging.warning('Pump %s: target volume truncated to %s mL',self.name,targetvolume)
+            logging.warning('%s: target volume truncated to %s mL',self.name,targetvolume)
 
         self.serialcon.write(self.address + 'MLT' + targetvolume  + '\r')
         resp = self.serialcon.read(5)
@@ -258,11 +258,11 @@ class PHD2000(Pump):
         # Pump11 replies with leading zeros, e.g. 03, but PHD2000 misbehaves and 
         # returns without and gives an extra CR. Use int() to deal with
         if int(resp[-3:-1]) != int(self.address):
-            logging.error('Pump %s: response has incorrect address',self.name)
+            logging.error('%s: response has incorrect address',self.name)
         elif resp[-1] == ':' or resp[-1] == '>' or resp[-1] == '<':
             # Been set correctly, so put it back in the object (as uL, not mL)
             self.targetvolume = float(targetvolume)*1000.0
-            logging.info('Pump %s: target volume set to %s uL',self.name,self.targetvolume)
+            logging.info('%s: target volume set to %s uL',self.name,self.targetvolume)
 
 class MightyMini():
 
@@ -270,7 +270,7 @@ class MightyMini():
         self.name = name
         self.serialcon = chain.serialcon
 
-        logging.info('Pump %s: created on %s',self.name,self.serialcon.port)
+        logging.info('%s: created on %s',self.name,self.serialcon.port)
 
     def __repr__(self):
         string = ''
@@ -286,33 +286,33 @@ class MightyMini():
         flowrate = int(flowrate)
         if flowrate > 9999:
             flowrate = 9999
-            logging.warning('Pump %s: flow rate truncated to %s uL/min',self.name,flowrate)
+            logging.warning('%s: flow rate truncated to %s uL/min',self.name,flowrate)
 
         self.serialcon.write('FM' + "{:04d}".format(flowrate))
         resp = self.serialcon.read(3)
         self.serialcon.flushInput()
         if len(resp) == 0:
-            logging.error('Pump %s: no response to setflowrate',self.name)
+            logging.error('%s: no response to setflowrate',self.name)
         elif resp[0] == 'O' and resp[1] == 'K':
             # flow rate sent, check it is correct
             self.serialcon.write('CC')
             resp = self.serialcon.read(11)
             returned_flowrate = int(float(resp[5:-1])*1000)
             if returned_flowrate != flowrate:
-                logging.error('Pump %s: set flowrate (%s uL/min) does not match flowrate returned by pump (%s uL/min)',self.name,flowrate,returned_flowrate)
+                logging.error('%s: set flowrate (%s uL/min) does not match flowrate returned by pump (%s uL/min)',self.name,flowrate,returned_flowrate)
             elif returned_flowrate == flowrate:
                 self.flowrate = returned_flowrate
-                logging.info('Pump %s: flow rate set to %s uL/min',self.name,self.flowrate)
+                logging.info('%s: flow rate set to %s uL/min',self.name,self.flowrate)
         else:
-            logging.error('Pump %s: error setting flow rate (%s uL/min)',self.name,flowrate)
+            logging.error('%s: error setting flow rate (%s uL/min)',self.name,flowrate)
 
     def infuse(self):
         self.serialcon.write('RU')
         resp = self.serialcon.read(3)
         if len(resp) == 0:
-            logging.error('Pump %s: no response to infuse',self.name)
+            logging.error('%s: no response to infuse',self.name)
         elif resp[0] == 'O' and resp[1] == 'K':
-            logging.info('Pump %s: infusing',self.name)
+            logging.info('%s: infusing',self.name)
 
     def withdraw(self):
         logging.error('Set withdraw not applicable to pump %s', self.name)
@@ -322,9 +322,9 @@ class MightyMini():
         self.serialcon.write('ST')
         resp = self.serialcon.read(3)
         if len(resp) == 0:
-            logging.error('Pump %s: no response to stop',self.name)
+            logging.error('%s: no response to stop',self.name)
         elif resp[0] == 'O' and resp[1] == 'K':
-            logging.info('Pump %s: stopping',self.name)
+            logging.info('%s: stopping',self.name)
 
     def settargetvolume(self, targetvolume):
         logging.error('Set target volume not applicable to pump %s', self.name)
