@@ -355,22 +355,32 @@ class MightyMini():
 # Run with -h flag to see help
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Command line interface to pumpy module for control of Harvard Pump 11 (default) or PHD2000 syringe pumps, or SSI Mighty Mini Pump')
-    parser.add_argument('port',help='serial port')
-    parser.add_argument('address',help='pump address (Harvard pumps)',type=int,nargs='?',default=0)
-    parser.add_argument('-d',dest='diameter',help='set syringe diameter',type=int)
-    parser.add_argument('-f',dest='flowrate',help='set flow rate')
-    parser.add_argument('-t',dest='targetvolume',help='set target volume')
-    parser.add_argument('-w',dest='wait',help='wait for target volume to be reached; use with -infuse or -withdraw',action='store_true')
+    parser = argparse.ArgumentParser(description='Command line interface to '
+                                     'pumpy module for control of Harvard Pump '
+                                     '11 (default) or PHD2000 syringe pumps, or'
+                                     ' SSI Mighty Mini Pump')
+    parser.add_argument('port', help='serial port')
+    parser.add_argument('address', help='pump address (Harvard pumps)',type=int,
+                         nargs='?', default=0)
+    parser.add_argument('-d', dest='diameter', help='set syringe diameter',
+                        type=int)
+    parser.add_argument('-f', dest='flowrate', help='set flow rate')
+    parser.add_argument('-t', dest='targetvolume', help='set target volume')
+    parser.add_argument('-w', dest='wait', help='wait for target volume to be'
+                        ' reached; use with -infuse or -withdraw',
+                        action='store_true')
+    
     # TODO: only allow -w if infuse, withdraw or stop have been specified
     group = parser.add_mutually_exclusive_group()
-    group.add_argument('-infuse',action='store_true')
-    group.add_argument('-withdraw',action="store_true")
-    group.add_argument('-stop',action="store_true")
+    group.add_argument('-infuse', action='store_true')
+    group.add_argument('-withdraw', action="store_true")
+    group.add_argument('-stop', action="store_true")
 
     pumpgroup = parser.add_mutually_exclusive_group()
-    pumpgroup.add_argument('-PHD2000',help='To control PHD2000',action='store_true')
-    pumpgroup.add_argument('-MightyMini',help='To control Mighty Mini',action='store_true')
+    pumpgroup.add_argument('-PHD2000', help='To control PHD2000',
+                           action='store_true')
+    pumpgroup.add_argument('-MightyMini', help='To control Mighty Mini',
+                           action='store_true')
     args = parser.parse_args()
 
     if args.MightyMini:
@@ -386,11 +396,11 @@ if __name__ == '__main__':
     # 5. infuse|withdraw (+ wait for target volume)
 
     if args.PHD2000:
-        pump = PHD2000(chain,args.address,name='PHD2000')
+        pump = PHD2000(chain, args.address, name='PHD2000')
     elif args.MightyMini:
-        pump = MightyMini(chain,name='MightyMini')
+        pump = MightyMini(chain, name='MightyMini')
     else:
-        pump = Pump(chain,args.address,name='11')
+        pump = Pump(chain,args.address, name='11')
 
     if args.stop:
         pump.stop()
