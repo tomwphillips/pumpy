@@ -129,6 +129,15 @@ class Pump:
             logging.error('%s: unknown response', self.name)
 
     def setflowrate(self, flowrate):
+        """Set flow rate (microlitres per minute).
+
+        Flow rate is converted to a string. Pump 11 requires it to have
+        a maximum field width of 5, e.g. "XXXX." or "X.XXX". Greater
+        precision will be truncated.
+
+        The pump will tell you if the specified flow rate is out of
+        range. This depends on the syringe diameter. See Pump 11 manual.
+        """
         flowrate = str(flowrate)
 
         if len(flowrate) > 5:
