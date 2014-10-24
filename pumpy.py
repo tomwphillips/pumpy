@@ -51,8 +51,16 @@ class Chain:
         else:
             logging.critical('Chain %s: unable to create',port)
 
-# Pump object that does everything
 class Pump:
+    """Create Pump object for Harvard Pump 11.
+
+    Argument:
+        Chain: pump chain
+
+    Optional arguments:
+        address: pump address. Default is 0.
+        name: used in logging. Default is None.
+    """
     def __init__(self, chain, address=0, name=None):
         self.name = name
         self.serialcon = chain.serialcon
