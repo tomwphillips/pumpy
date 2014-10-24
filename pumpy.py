@@ -35,8 +35,7 @@ def remove_crud(string):
     return string
 
 class Chain:
-    def __init__(self, comport, verbose=False, stopbits=serial.STOPBITS_TWO):
-        self.verbose = verbose
+    def __init__(self, comport, stopbits=serial.STOPBITS_TWO):
         self.serialcon = serial.Serial(port=comport, stopbits=stopbits,
                                        parity=serial.PARITY_NONE, timeout=2)
         self.clearbuffers()
