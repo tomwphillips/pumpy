@@ -11,7 +11,6 @@ def remove_crud(string):
      Return string with trailing zeros after a decimal place, trailing decimal 
      points, and leading and trailing spaces removed.
      """
-
     # Remove trailing zeros after decimal place
     if "." in string:
         while string[-1] == '0':
@@ -38,7 +37,8 @@ def remove_crud(string):
 class Chain:
     def __init__(self, comport, verbose=False, stopbits=serial.STOPBITS_TWO):
         self.verbose = verbose
-        self.serialcon = serial.Serial(port=comport, stopbits=stopbits, parity=serial.PARITY_NONE, timeout=2)
+        self.serialcon = serial.Serial(port=comport, stopbits=stopbits,
+                                       parity=serial.PARITY_NONE, timeout=2)
         self.clearbuffers()
         if self.serialcon.isOpen():
             logging.info('Chain %s: created',comport)
@@ -49,14 +49,15 @@ class Chain:
     def close(self):
         self.serialcon.close()
         if self.serialcon.isOpen():
-            logging.error('Chain %s: unable to close',self.serialcon.port)
+            logging.error('Chain %s: unable to close', self.serialcon.port)
         else:
-            logging.info('Chain %s: closed',self.serialcon.port)
+            logging.info('Chain %s: closed', self.serialcon.port)
 
     def clearbuffers(self):
         self.serialcon.flushOutput()
         self.serialcon.flushInput()
-        logging.info('Chain %s: flushed serial input and output buffers',self.serialcon.port)
+        logging.info('Chain %s: flushed serial input and output buffers',
+                     self.serialcon.port)
 
 # Pump object that does everything
 class Pump:
