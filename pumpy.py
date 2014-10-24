@@ -31,10 +31,7 @@ class Chain:
                                        parity=serial.PARITY_NONE, timeout=2)
         self.serialcon.flushOutput()
         self.serialcon.flushInput()
-        if self.serialcon.isOpen():
-            logging.info('Chain %s: created',port)
-        else:
-            logging.critical('Chain %s: unable to create',port)
+        logging.info('Chain created on %s',port)
 
 class Pump:
     """Create Pump object for Harvard Pump 11.
@@ -350,6 +347,8 @@ class MightyMini():
             logging.error('%s: no response to stop',self.name)
         elif resp[0] == 'O' and resp[1] == 'K':
             logging.info('%s: stopping',self.name)
+
+
 
 # Command line options
 # Run with -h flag to see help
