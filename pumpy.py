@@ -68,8 +68,8 @@ class Pump:
         self.diameter = None
         self.flowrate = None
         self.targetvolume = None
-
-        logging.info('%s: created at address %s on %s',self.name,self.address,self.serialcon.port)
+        logging.info('%s: created at address %s on %s', self.name,
+                      self.address, self.serialcon.port)
 
     def __repr__(self):
         string = ''
@@ -79,7 +79,8 @@ class Pump:
 
     def setdiameter(self, diameter):
         if diameter > 35 or diameter < 0.1:
-            logging.error('%s: %s mm out of diameter range. Must be between 0.1-35 mm.',self.name,diameter)
+            logging.error('%s: %s mm out of diameter range. Must be between 0.1'
+                '-35 mm.', self.name, diameter)
             return None
 
         diameter = str(diameter)
@@ -92,7 +93,8 @@ class Pump:
                 diameter = diameter[0:4]
 
             diameter = remove_crud(diameter)
-            logging.warning('%s: diameter truncated to %s mm',self.name,diameter)
+            logging.warning('%s: diameter truncated to %s mm', self.name,
+                            diameter)
         else:
             diameter = remove_crud(diameter)
 
@@ -101,7 +103,8 @@ class Pump:
         resp = self.serialcon.read(5)
 
         # Pump replies with address and status (:, < or >)        
-        if len(resp) > 0 and (resp[-1] == ':' or resp[-1] == '<' or resp[-1] == '>'):
+        if (len(resp) > 0 and (resp[-1] == ':' or resp[-1] == '<' or
+            resp[-1] == '>')):
             # check if diameter has been set correctlry
             self.serialcon.write(self.address + 'DIA\r')
             resp = self.serialcon.read(15)
@@ -109,12 +112,15 @@ class Pump:
             
             # Check diameter was set accurately
             if returned_diameter != diameter:
-                logging.error('%s: set diameter (%s mm) does not match diameter returned by pump (%s mm)',self.name,diameter,returned_diameter)
+                logging.error('%s: set diameter (%s mm) does not match diameter'
+                              ' returned by pump (%s mm)', self.name, diameter,
+                              returned_diameter)
             elif returned_diameter == diameter:
                 self.diameter = float(returned_diameter)
-                logging.info('%s: diameter set to %s mm',self.name,self.diameter)
+                logging.info('%s: diameter set to %s mm', self.name,
+                             self.diameter)
         else:
-            logging.error('%s: unknown response',self.name)
+            logging.error('%s: unknown response', self.name)
 
     def setflowrate(self, flowrate):
         flowrate = str(flowrate)
