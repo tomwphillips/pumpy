@@ -8,8 +8,8 @@ logging.basicConfig(level=logging.INFO)
 def remove_crud(string):
     """Return string without useless information.
 
-     Return string with trailing zeros after a decimal place, trailing decimal 
-     points, and leading and trailing spaces removed.
+     Return string with trailing zeros after a decimal place, trailing
+     decimal points, and leading and trailing spaces removed.
      """
     # Remove trailing zeros after decimal place
     if "." in string:
