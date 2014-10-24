@@ -66,10 +66,13 @@ class Pump:
         ignores precision greater than 2 decimal places. If more d.p.
         are specificed the diameter will be truncated.
         """
-        if diameter > 35 or diameter < 0.1:
-            logging.error('%s: %s mm out of diameter range. Must be between 0.1'
-                '-35 mm.', self.name, diameter)
-            return None
+        try:
+            if diameter > 35 or diameter < 0.1:
+                raise PumpError('%s: diameter %s mm is out of range' % 
+                                (self.name, diameter))
+        except PumpError:
+            self.serialcon.close()
+            raise
 
         diameter = str(diameter)
 
@@ -348,7 +351,8 @@ class MightyMini():
         elif resp[0] == 'O' and resp[1] == 'K':
             logging.info('%s: stopping',self.name)
 
-
+class PumpError(Exception):
+    pass
 
 # Command line options
 # Run with -h flag to see help
