@@ -351,14 +351,6 @@ class MightyMini():
         elif resp[0] == 'O' and resp[1] == 'K':
             logging.info('%s: stopping',self.name)
 
-    def settargetvolume(self, targetvolume):
-        logging.error('Set target volume not applicable to pump %s', self.name)
-        return None
-
-    def waituntiltarget(self):
-        logging.error('waituntiltarget not applicable to pump %s', self.name)
-        return None
-
 # Command line options
 # Run with -h flag to see help
 
