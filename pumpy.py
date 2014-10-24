@@ -11,26 +11,11 @@ def remove_crud(string):
      Return string with trailing zeros after a decimal place, trailing
      decimal points, and leading and trailing spaces removed.
      """
-    # Remove trailing zeros after decimal place
     if "." in string:
-        while string[-1] == '0':
-            string = string[0:-1]
+        string = string.rstrip('0')
 
-    # Remove decimal point with nothing after it
-    if string[-1] == ".":
-        string = string[:-1]
-    
-    # Remove leading zeros
-    while string[0] == '0':
-        string = string[1:]
-
-    # Remove leading spaces
-    while string[0] == ' ':
-        string = string[1:]
-
-    # Remove trailing spaces
-    while string[-1] == ' ':
-        string = string[:-2]
+    string = string.lstrip('0 ')
+    string = string.rstrip(' .')
 
     return string
 
