@@ -44,7 +44,8 @@ class Chain:
     def __init__(self, port, stopbits=serial.STOPBITS_TWO):
         self.serialcon = serial.Serial(port=port, stopbits=stopbits,
                                        parity=serial.PARITY_NONE, timeout=2)
-        self.clearbuffers()
+        self.serialcon.flushOutput()
+        self.serialcon.flushInput()
         if self.serialcon.isOpen():
             logging.info('Chain %s: created',port)
         else:
@@ -57,12 +58,6 @@ class Chain:
             logging.error('Chain %s: unable to close', self.serialcon.port)
         else:
             logging.info('Chain %s: closed', self.serialcon.port)
-
-    def clearbuffers(self):
-        self.serialcon.flushOutput()
-        self.serialcon.flushInput()
-        logging.info('Chain %s: flushed serial input and output buffers',
-                     self.serialcon.port)
 
 # Pump object that does everything
 class Pump:
