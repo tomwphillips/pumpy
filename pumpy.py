@@ -78,6 +78,12 @@ class Pump:
         return string
 
     def setdiameter(self, diameter):
+        """Set syringe diameter (millimetres).
+
+        Pump 11 syringe diameter range is 0.1-35 mm. Note that the pump
+        ignores precision greater than 2 decimal places. If more d.p.
+        are specificed the diameter will be truncated.
+        """
         if diameter > 35 or diameter < 0.1:
             logging.error('%s: %s mm out of diameter range. Must be between 0.1'
                 '-35 mm.', self.name, diameter)
