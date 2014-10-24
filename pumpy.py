@@ -128,28 +128,34 @@ class Pump:
         if len(flowrate) > 5:
             flowrate = flowrate[0:5]
             flowrate = remove_crud(flowrate)
-            logging.warning('%s: flow rate truncated to %s uL/min',self.name,flowrate)
+            logging.warning('%s: flow rate truncated to %s uL/min', self.name, 
+                             flowrate)
         else:
             flowrate = remove_crud(flowrate)
 
         self.serialcon.write(self.address + 'ULM' + flowrate + '\r')
         resp = self.serialcon.read(5)
         
-        if len(resp) > 0 and (resp[-1] == ':' or resp[-1] == '<' or resp[-1] == '>'):
+        if (len(resp) > 0 and (resp[-1] == ':' or resp[-1] == '<' or
+            resp[-1] == '>')):
             # Flow rate was sent, check it was set correctly
             self.serialcon.write(self.address + 'RAT\r')
             resp = self.serialcon.read(150)
             returned_flowrate = remove_crud(resp[2:8])
 
             if returned_flowrate != flowrate:
-                logging.error('%s: set flowrate (%s uL/min) does not match flowrate returned by pump (%s uL/min)',self.name,flowrate,returned_flowrate)
+                logging.error('%s: set flowrate (%s uL/min) does not match'
+                              'flowrate returned by pump (%s uL/min)',
+                              self.name, flowrate, returned_flowrate)
             elif returned_flowrate == flowrate:
                 self.flowrate = returned_flowrate
-                logging.info('%s: flow rate set to %s uL/min',self.name,self.flowrate)
+                logging.info('%s: flow rate set to %s uL/min', self.name,
+                              self.flowrate)
         elif 'OOR' in resp:
-            logging.error('%s: flow rate (%s uL/min) is out of range',self.name,flowrate)
+            logging.error('%s: flow rate (%s uL/min) is out of range',
+                           self.name, flowrate)
         else:
-            logging.error('%s: unknown response',self.name)
+            logging.error('%s: unknown response', self.name)
             
     def infuse(self):
         self.serialcon.write(self.address + 'RUN\r')
