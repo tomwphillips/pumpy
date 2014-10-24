@@ -35,6 +35,12 @@ def remove_crud(string):
     return string
 
 class Chain:
+    """Create Chain object.
+
+    Harvard syring pumps are daisy chained together in a 'pump chain'
+    off a single serial port. A pump address is set on each pump. You
+    must first create a chain to which you then add Pump objects.
+    """
     def __init__(self, comport, stopbits=serial.STOPBITS_TWO):
         self.serialcon = serial.Serial(port=comport, stopbits=stopbits,
                                        parity=serial.PARITY_NONE, timeout=2)
