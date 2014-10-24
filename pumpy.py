@@ -5,7 +5,7 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
-def removecrud(string):
+def remove_crud(string):
     """Return string without useless information.
 
      Return string with trailing zeros after a decimal place, trailing decimal 
@@ -90,10 +90,10 @@ class Pump:
             elif diameter[1] is '.': # e.g. 3.222222
                 diameter = diameter[0:4]
 
-            diameter = removecrud(diameter)
+            diameter = remove_crud(diameter)
             logging.warning('Pump %s: diameter truncated to %s mm',self.name,diameter)
         else:
-            diameter = removecrud(diameter)
+            diameter = remove_crud(diameter)
 
         # Send command   
         self.serialcon.write(self.address + 'MMD' + diameter + '\r')
@@ -104,7 +104,7 @@ class Pump:
             # check if diameter has been set correctlry
             self.serialcon.write(self.address + 'DIA\r')
             resp = self.serialcon.read(15)
-            returned_diameter = removecrud(resp[3:9])
+            returned_diameter = remove_crud(resp[3:9])
             
             # Check diameter was set accurately
             if returned_diameter != diameter:
@@ -120,10 +120,10 @@ class Pump:
 
         if len(flowrate) > 5:
             flowrate = flowrate[0:5]
-            flowrate = removecrud(flowrate)
+            flowrate = remove_crud(flowrate)
             logging.warning('Pump %s: flow rate truncated to %s uL/min',self.name,flowrate)
         else:
-            flowrate = removecrud(flowrate)
+            flowrate = remove_crud(flowrate)
 
         self.serialcon.write(self.address + 'ULM' + flowrate + '\r')
         resp = self.serialcon.read(5)
@@ -132,7 +132,7 @@ class Pump:
             # Flow rate was sent, check it was set correctly
             self.serialcon.write(self.address + 'RAT\r')
             resp = self.serialcon.read(150)
-            returned_flowrate = removecrud(resp[2:8])
+            returned_flowrate = remove_crud(resp[2:8])
 
             if returned_flowrate != flowrate:
                 logging.error('Pump %s: set flowrate (%s uL/min) does not match flowrate returned by pump (%s uL/min)',self.name,flowrate,returned_flowrate)
