@@ -249,9 +249,15 @@ class Pump:
 
             i = i+1
 
-# PHD2000 subclass because it behaves badly    
 class PHD2000(Pump):
+    """Harvard PHD2000 pump object.
+
+    Inherits from Pump class, but needs its own class as it doesn't
+    stick to the Pump 11 protocol with commands to stop and set the
+    target volume.
+    """
     def stop(self):
+        """Stop pump."""
         self.serialcon.write(self.address + 'STP\r')
         resp = self.serialcon.read(5)
         
@@ -261,6 +267,8 @@ class PHD2000(Pump):
             logging.info('%s: stopped',self.name)
 
     def settargetvolume(self, targetvolume):
+        """Set the target volume to infuse or withdraw (microlitres)."""
+
         # PHD2000 expects target volume in mL not uL like the Pump11, so convert to mL
         targetvolume = str(float(targetvolume)/1000.0)
 
