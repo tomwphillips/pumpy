@@ -173,6 +173,7 @@ class Pump:
             logging.error('%s: unknown response', self.name)
             
     def infuse(self):
+        """Start infusing pump."""
         self.serialcon.write(self.address + 'RUN\r')
         resp = self.serialcon.read(5)
         if len(resp) > 0:
@@ -189,6 +190,7 @@ class Pump:
             logging.error('%s: empty response to infuse',self.name)
 
     def withdraw(self):
+        """Start withdrawing pump."""
         self.serialcon.write(self.address + 'REV\r')
         resp = self.serialcon.read(5)
         
@@ -208,6 +210,7 @@ class Pump:
             logging.error('%s: empty response to withdraw',self.name)
 
     def stop(self):
+        """Stop pump."""
         self.serialcon.write(self.address + 'STP\r')
         resp = self.serialcon.read(5)
         
