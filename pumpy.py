@@ -51,14 +51,6 @@ class Chain:
         else:
             logging.critical('Chain %s: unable to create',port)
 
-    # For debugging
-    def close(self):
-        self.serialcon.close()
-        if self.serialcon.isOpen():
-            logging.error('Chain %s: unable to close', self.serialcon.port)
-        else:
-            logging.info('Chain %s: closed', self.serialcon.port)
-
 # Pump object that does everything
 class Pump:
     def __init__(self, chain, address=0, name=None):
