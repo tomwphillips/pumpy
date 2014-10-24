@@ -1,5 +1,4 @@
 from __future__ import print_function 
-import sys
 import serial
 import argparse
 import logging
