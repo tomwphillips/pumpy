@@ -41,14 +41,14 @@ class Chain:
     off a single serial port. A pump address is set on each pump. You
     must first create a chain to which you then add Pump objects.
     """
-    def __init__(self, comport, stopbits=serial.STOPBITS_TWO):
-        self.serialcon = serial.Serial(port=comport, stopbits=stopbits,
+    def __init__(self, port, stopbits=serial.STOPBITS_TWO):
+        self.serialcon = serial.Serial(port=port, stopbits=stopbits,
                                        parity=serial.PARITY_NONE, timeout=2)
         self.clearbuffers()
         if self.serialcon.isOpen():
-            logging.info('Chain %s: created',comport)
+            logging.info('Chain %s: created',port)
         else:
-            logging.critical('Chain %s: unable to create',comport)
+            logging.critical('Chain %s: unable to create',port)
 
     # For debugging
     def close(self):
