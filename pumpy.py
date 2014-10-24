@@ -59,9 +59,9 @@ class Pump:
 
     Optional arguments:
         address: pump address. Default is 0.
-        name: used in logging. Default is None.
+        name: used in logging. Default is Pump 11.
     """
-    def __init__(self, chain, address=0, name=None):
+    def __init__(self, chain, address=0, name='Pump 11'):
         self.name = name
         self.serialcon = chain.serialcon
         self.address = '{0:02.0f}'.format(address)
