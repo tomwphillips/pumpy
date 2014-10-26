@@ -54,6 +54,24 @@ class Pump:
         self.diameter = None
         self.flowrate = None
         self.targetvolume = None
+
+        """Query model and version number of firmware to check pump is
+        OK. Responds with a load of stuff, but the last three characters
+        are XXY, where XX is the address and Y is pump status. :, > or <
+        when stopped, running forwards, or running backwards. Confirm
+        that the address is correct. This acts as a check to see that
+        the pump is connected and working."""
+        try:
+            self.write('VER')
+            resp = self.serialcon.read(17)
+
+            if resp[-3:-1] != self.address:
+                raise PumpError('No response from pump at address %s' %
+                                self.address)
+        except PumpError:
+            self.serialcon.close()
+            raise
+
         logging.info('%s: created at address %s on %s', self.name,
                       self.address, self.serialcon.port)
 
