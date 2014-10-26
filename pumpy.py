@@ -3,8 +3,6 @@ import serial
 import argparse
 import logging
 
-logging.basicConfig(level=logging.INFO)
-
 def remove_crud(string):
     """Return string without useless information.
 
