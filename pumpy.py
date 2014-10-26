@@ -308,11 +308,9 @@ class PHD2000(Pump):
                           self.targetvolume)
 
 class MightyMini():
-
-    def __init__(self, chain, name=None):
+    def __init__(self, chain, name='Mighty Mini'):
         self.name = name
         self.serialcon = chain.serialcon
-
         logging.info('%s: created on %s',self.name,self.serialcon.port)
 
     def __repr__(self):
@@ -321,51 +319,48 @@ class MightyMini():
             string += '%s: %s\n' % (attr,self.__dict__[attr]) 
         return string
 
-    def setdiameter(self, diameter):
-        logging.error('Set diameter not applicable to pump %s', self.name)
-        return None
-
     def setflowrate(self, flowrate):
         flowrate = int(flowrate)
         if flowrate > 9999:
             flowrate = 9999
-            logging.warning('%s: flow rate truncated to %s uL/min',self.name,flowrate)
+            logging.warning('%s: flow rate limited to %s uL/min', self.name,
+                            flowrate)
 
         self.serialcon.write('FM' + "{:04d}".format(flowrate))
         resp = self.serialcon.read(3)
         self.serialcon.flushInput()
         if len(resp) == 0:
-            logging.error('%s: no response to setflowrate',self.name)
+            raise PumpError('%s: no response to set flowrate', self.name)
         elif resp[0] == 'O' and resp[1] == 'K':
             # flow rate sent, check it is correct
             self.serialcon.write('CC')
             resp = self.serialcon.read(11)
             returned_flowrate = int(float(resp[5:-1])*1000)
             if returned_flowrate != flowrate:
-                logging.error('%s: set flowrate (%s uL/min) does not match flowrate returned by pump (%s uL/min)',self.name,flowrate,returned_flowrate)
+                raise PumpError('%s: set flowrate (%s uL/min) does not match'
+                              ' flowrate returned by pump (%s uL/min)',
+                              self.name, flowrate, returned_flowrate)
             elif returned_flowrate == flowrate:
                 self.flowrate = returned_flowrate
-                logging.info('%s: flow rate set to %s uL/min',self.name,self.flowrate)
+                logging.info('%s: flow rate set to %s uL/min', self.name, 
+                             self.flowrate)
         else:
-            logging.error('%s: error setting flow rate (%s uL/min)',self.name,flowrate)
+            raise PumpError('%s: error setting flow rate (%s uL/min)',
+                            self.name,flowrate)
 
     def infuse(self):
         self.serialcon.write('RU')
         resp = self.serialcon.read(3)
         if len(resp) == 0:
-            logging.error('%s: no response to infuse',self.name)
+            raise PumpError('%s: no response to infuse',self.name)
         elif resp[0] == 'O' and resp[1] == 'K':
             logging.info('%s: infusing',self.name)
-
-    def withdraw(self):
-        logging.error('Set withdraw not applicable to pump %s', self.name)
-        return None
 
     def stop(self):
         self.serialcon.write('ST')
         resp = self.serialcon.read(3)
         if len(resp) == 0:
-            logging.error('%s: no response to stop',self.name)
+            raise PumpError('%s: no response to stop',self.name)
         elif resp[0] == 'O' and resp[1] == 'K':
             logging.info('%s: stopping',self.name)
 
