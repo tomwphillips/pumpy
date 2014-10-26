@@ -193,7 +193,7 @@ class Pump:
             if resp[-1] == '<': # wrong direction
                 self.write('REV')
             else:
-                break
+                raise PumpError('%s: unknown response to to infuse' % self.name)
             resp = self.serialcon.read(5)
         
         logging.info('%s: infusing',self.name)
@@ -209,7 +209,7 @@ class Pump:
             elif resp[-1] == '>': # wrong direction
                 self.write('REV')
             else:
-                logging.error('%s: unexpected response to withdraw',self.name)
+                raise PumpError('%s: unknown response to withdraw' % self.name)
                 break
             resp = self.read(5)
 
@@ -221,7 +221,7 @@ class Pump:
         resp = self.read(5)
         
         if resp[-1] != ':':
-            logging.error('%s: unexpected response to stop',self.name)
+            raise PumpError('%s: unexpected response to stop' % self.name)
         else:
             logging.info('%s: stopped',self.name)
 
@@ -233,11 +233,12 @@ class Pump:
         # response should be CRLFXX:, CRLFXX>, CRLFXX< where XX is address
         # Pump11 replies with leading zeros, e.g. 03, but PHD2000 misbehaves and 
         # returns without and gives an extra CR. Use int() to deal with
-        if int(resp[-3:-1]) != int(self.address):
-            logging.error('%s: response has incorrect address',self.name)
-        elif resp[-1] == ':' or resp[-1] == '>' or resp[-1] == '<':
+        if resp[-1] == ':' or resp[-1] == '>' or resp[-1] == '<':
             self.targetvolume = float(targetvolume)
-            logging.info('%s: target volume set to %s uL',self.name,self.targetvolume)
+            logging.info('%s: target volume set to %s uL', self.name,
+                         self.targetvolume)
+        else:
+            raise PumpError('%s: target volume not set' % self.name)
 
     def waituntiltarget(self):
         """Wait until the pump has reached its target volume."""
@@ -251,7 +252,8 @@ class Pump:
             resp1 = self.read(15)
 
             if ':' in resp1 and i == 0:
-                logging.error('%s: not infusing/withdrawing - infuse or withdraw first',self.name)
+                raise PumpError('%s: not infusing/withdrawing - infuse or '
+                                'withdraw first', self.name)
             elif ':' in resp1 and i != 0:
                 # pump has already come to a halt
                 logging.info('%s: target volume reached, stopped',self.name)
@@ -280,10 +282,10 @@ class PHD2000(Pump):
         self.write('STP')
         resp = self.read(5)
         
-        if resp[-1] != '*':
-            logging.error('%s: unexpected response to stop',self.name)
-        else:
+        if resp[-1] == '*':
             logging.info('%s: stopped',self.name)
+        else:
+            raise PumpError('%s: unexpected response to stop', self.name)
 
     def settargetvolume(self, targetvolume):
         """Set the target volume to infuse or withdraw (microlitres)."""
@@ -301,12 +303,11 @@ class PHD2000(Pump):
         # response should be CRLFXX:, CRLFXX>, CRLFXX< where XX is address
         # Pump11 replies with leading zeros, e.g. 03, but PHD2000 misbehaves and 
         # returns without and gives an extra CR. Use int() to deal with
-        if int(resp[-3:-1]) != int(self.address):
-            logging.error('%s: response has incorrect address',self.name)
-        elif resp[-1] == ':' or resp[-1] == '>' or resp[-1] == '<':
+        if resp[-1] == ':' or resp[-1] == '>' or resp[-1] == '<':
             # Been set correctly, so put it back in the object (as uL, not mL)
             self.targetvolume = float(targetvolume)*1000.0
-            logging.info('%s: target volume set to %s uL',self.name,self.targetvolume)
+            logging.info('%s: target volume set to %s uL', self.name,
+                          self.targetvolume)
 
 class MightyMini():
 
