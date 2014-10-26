@@ -91,13 +91,9 @@ class Pump:
         ignores precision greater than 2 decimal places. If more d.p.
         are specificed the diameter will be truncated.
         """
-        try:
-            if diameter > 35 or diameter < 0.1:
-                raise PumpError('%s: diameter %s mm is out of range' % 
-                                (self.name, diameter))
-        except PumpError:
-            self.serialcon.close()
-            raise
+        if diameter > 35 or diameter < 0.1:
+            raise PumpError('%s: diameter %s mm is out of range' % 
+                            (self.name, diameter))
 
         # TODO: Got to be a better way of doing this with string formatting
         diameter = str(diameter)
