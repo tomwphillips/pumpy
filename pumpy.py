@@ -418,31 +418,34 @@ if __name__ == '__main__':
     # 4. set target
     # 5. infuse|withdraw (+ wait for target volume)
 
-    if args.PHD2000:
-        pump = PHD2000(chain, args.address, name='PHD2000')
-    elif args.MightyMini:
-        pump = MightyMini(chain, name='MightyMini')
-    else:
-        pump = Pump(chain,args.address, name='11')
+    try:
+        if args.PHD2000:
+            pump = PHD2000(chain, args.address, name='PHD2000')
+        elif args.MightyMini:
+            pump = MightyMini(chain, name='MightyMini')
+        else:
+            pump = Pump(chain,args.address, name='11')
 
-    if args.stop:
-        pump.stop()
+        if args.stop:
+            pump.stop()
 
-    if args.diameter:
-        pump.setdiameter(args.diameter)
+        if args.diameter:
+            pump.setdiameter(args.diameter)
 
-    if args.flowrate:
-        pump.setflowrate(args.flowrate)
+        if args.flowrate:
+            pump.setflowrate(args.flowrate)
 
-    if args.targetvolume:
-        pump.settargetvolume(args.targetvolume)
+        if args.targetvolume:
+            pump.settargetvolume(args.targetvolume)
 
-    if args.infuse:
-        pump.infuse()
-        if args.wait:
-            pump.waituntiltarget()
+        if args.infuse:
+            pump.infuse()
+            if args.wait:
+                pump.waituntiltarget()
 
-    if args.withdraw:
-        pump.withdraw()
-        if args.wait:
-            pump.waituntiltarget()
+        if args.withdraw:
+            pump.withdraw()
+            if args.wait:
+                pump.waituntiltarget()
+    finally:
+        chain.close()
