@@ -63,6 +63,9 @@ class Pump:
             string += '%s: %s\n' % (attr,self.__dict__[attr]) 
         return string
 
+    def write(self,command):
+        self.serialcon.write(self.address + command + '\r')
+
     def setdiameter(self, diameter):
         """Set syringe diameter (millimetres).
 
@@ -78,6 +81,7 @@ class Pump:
             self.serialcon.close()
             raise
 
+        # TODO: Got to be a better way of doing this with string formatting
         diameter = str(diameter)
 
         # Pump only considers 2 d.p. - anymore are ignored
@@ -94,14 +98,14 @@ class Pump:
             diameter = remove_crud(diameter)
 
         # Send command   
-        self.serialcon.write(self.address + 'MMD' + diameter + '\r')
+        self.write('MMD' + diameter)
         resp = self.serialcon.read(5)
 
         # Pump replies with address and status (:, < or >)        
         if (len(resp) > 0 and (resp[-1] == ':' or resp[-1] == '<' or
             resp[-1] == '>')):
             # check if diameter has been set correctlry
-            self.serialcon.write(self.address + 'DIA\r')
+            self.write('DIA')
             resp = self.serialcon.read(15)
             returned_diameter = remove_crud(resp[3:9])
             
@@ -137,13 +141,13 @@ class Pump:
         else:
             flowrate = remove_crud(flowrate)
 
-        self.serialcon.write(self.address + 'ULM' + flowrate + '\r')
+        self.write('ULM' + flowrate)
         resp = self.serialcon.read(5)
         
         if (len(resp) > 0 and (resp[-1] == ':' or resp[-1] == '<' or
             resp[-1] == '>')):
             # Flow rate was sent, check it was set correctly
-            self.serialcon.write(self.address + 'RAT\r')
+            self.write('RAT')
             resp = self.serialcon.read(150)
             returned_flowrate = remove_crud(resp[2:8])
 
@@ -163,12 +167,12 @@ class Pump:
             
     def infuse(self):
         """Start infusing pump."""
-        self.serialcon.write(self.address + 'RUN\r')
+        self.write('RUN')
         resp = self.serialcon.read(5)
         if len(resp) > 0:
             while resp[-1] != '>':
                 if resp[-1] == '<': # wrong direction
-                    self.serialcon.write(self.address + 'REV\r')
+                    self.write('REV')
                 else:
                     logging.error('%s: unexpected response to infuse',self.name)
                     break
@@ -180,15 +184,15 @@ class Pump:
 
     def withdraw(self):
         """Start withdrawing pump."""
-        self.serialcon.write(self.address + 'REV\r')
+        self.write('REV')
         resp = self.serialcon.read(5)
         
         if len(resp) > 0:
             while resp[-1] != '<':
                 if resp[-1] == ':': # pump not running
-                    self.serialcon.write(self.address + 'RUN\r')
+                    self.write('RUN')
                 elif resp[-1] == '>': # wrong direction
-                    self.serialcon.write(self.address + 'REV\r')
+                    self.write('REV')
                 else:
                     logging.error('%s: unexpected response to withdraw',self.name)
                     break
@@ -200,7 +204,7 @@ class Pump:
 
     def stop(self):
         """Stop pump."""
-        self.serialcon.write(self.address + 'STP\r')
+        self.write('STP')
         resp = self.serialcon.read(5)
         
         if len(resp) == 0 or resp[-1] != ':':
@@ -210,7 +214,7 @@ class Pump:
 
     def settargetvolume(self, targetvolume):
         """Set the target volume to infuse or withdraw (microlitres)."""
-        self.serialcon.write(self.address + 'MLT' + str(targetvolume) + '\r')
+        self.write('MLT' + str(targetvolume))
         resp = self.serialcon.read(5)
 
         # response should be CRLFXX:, CRLFXX>, CRLFXX< where XX is address
@@ -262,7 +266,7 @@ class PHD2000(Pump):
     """
     def stop(self):
         """Stop pump."""
-        self.serialcon.write(self.address + 'STP\r')
+        self.write('STP')
         resp = self.serialcon.read(5)
         
         if resp[-1] != '*':
@@ -280,7 +284,7 @@ class PHD2000(Pump):
             targetvolume = targetvolume[0:5]
             logging.warning('%s: target volume truncated to %s mL',self.name,targetvolume)
 
-        self.serialcon.write(self.address + 'MLT' + targetvolume  + '\r')
+        self.write('MLT' + targetvolume)
         resp = self.serialcon.read(5)
 
         # response should be CRLFXX:, CRLFXX>, CRLFXX< where XX is address
