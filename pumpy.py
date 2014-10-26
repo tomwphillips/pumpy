@@ -63,7 +63,7 @@ class Pump:
         the pump is connected and working."""
         try:
             self.write('VER')
-            resp = self.serialcon.read(17)
+            resp = self.read(17)
 
             if resp[-3:-1] != self.address:
                 raise PumpError('No response from pump at address %s' %
@@ -83,6 +83,14 @@ class Pump:
 
     def write(self,command):
         self.serialcon.write(self.address + command + '\r')
+
+    def read(self,bytes=5):
+        response = self.serialcon.read(bytes)
+
+        if len(response) == 0:
+            raise PumpError('%s: no response to command' % self.name)
+        else:
+            return response
 
     def setdiameter(self, diameter):
         """Set syringe diameter (millimetres).
@@ -113,14 +121,13 @@ class Pump:
 
         # Send command   
         self.write('MMD' + diameter)
-        resp = self.serialcon.read(5)
+        resp = self.read(5)
 
         # Pump replies with address and status (:, < or >)        
-        if (len(resp) > 0 and (resp[-1] == ':' or resp[-1] == '<' or
-            resp[-1] == '>')):
+        if (resp[-1] == ':' or resp[-1] == '<' or resp[-1] == '>'):
             # check if diameter has been set correctlry
             self.write('DIA')
-            resp = self.serialcon.read(15)
+            resp = self.read(15)
             returned_diameter = remove_crud(resp[3:9])
             
             # Check diameter was set accurately
@@ -156,13 +163,12 @@ class Pump:
             flowrate = remove_crud(flowrate)
 
         self.write('ULM' + flowrate)
-        resp = self.serialcon.read(5)
+        resp = self.read(5)
         
-        if (len(resp) > 0 and (resp[-1] == ':' or resp[-1] == '<' or
-            resp[-1] == '>')):
+        if (resp[-1] == ':' or resp[-1] == '<' or resp[-1] == '>'):
             # Flow rate was sent, check it was set correctly
             self.write('RAT')
-            resp = self.serialcon.read(150)
+            resp = self.read(150)
             returned_flowrate = remove_crud(resp[2:8])
 
             if returned_flowrate != flowrate:
@@ -182,46 +188,39 @@ class Pump:
     def infuse(self):
         """Start infusing pump."""
         self.write('RUN')
-        resp = self.serialcon.read(5)
-        if len(resp) > 0:
-            while resp[-1] != '>':
-                if resp[-1] == '<': # wrong direction
-                    self.write('REV')
-                else:
-                    logging.error('%s: unexpected response to infuse',self.name)
-                    break
-
-                resp = self.serialcon.read(5)
-                logging.info('%s: infusing',self.name)
-        else:
-            logging.error('%s: empty response to infuse',self.name)
+        resp = self.read(5)
+        while resp[-1] != '>':
+            if resp[-1] == '<': # wrong direction
+                self.write('REV')
+            else:
+                break
+            resp = self.serialcon.read(5)
+        
+        logging.info('%s: infusing',self.name)
 
     def withdraw(self):
         """Start withdrawing pump."""
         self.write('REV')
-        resp = self.serialcon.read(5)
+        resp = self.read(5)
         
-        if len(resp) > 0:
-            while resp[-1] != '<':
-                if resp[-1] == ':': # pump not running
-                    self.write('RUN')
-                elif resp[-1] == '>': # wrong direction
-                    self.write('REV')
-                else:
-                    logging.error('%s: unexpected response to withdraw',self.name)
-                    break
+        while resp[-1] != '<':
+            if resp[-1] == ':': # pump not running
+                self.write('RUN')
+            elif resp[-1] == '>': # wrong direction
+                self.write('REV')
+            else:
+                logging.error('%s: unexpected response to withdraw',self.name)
+                break
+            resp = self.read(5)
 
-                resp = self.serialcon.read(5)
-                logging.info('%s: withdrawing',self.name)
-        else:
-            logging.error('%s: empty response to withdraw',self.name)
+        logging.info('%s: withdrawing',self.name)
 
     def stop(self):
         """Stop pump."""
         self.write('STP')
-        resp = self.serialcon.read(5)
+        resp = self.read(5)
         
-        if len(resp) == 0 or resp[-1] != ':':
+        if resp[-1] != ':':
             logging.error('%s: unexpected response to stop',self.name)
         else:
             logging.info('%s: stopped',self.name)
@@ -229,14 +228,12 @@ class Pump:
     def settargetvolume(self, targetvolume):
         """Set the target volume to infuse or withdraw (microlitres)."""
         self.write('MLT' + str(targetvolume))
-        resp = self.serialcon.read(5)
+        resp = self.read(5)
 
         # response should be CRLFXX:, CRLFXX>, CRLFXX< where XX is address
         # Pump11 replies with leading zeros, e.g. 03, but PHD2000 misbehaves and 
         # returns without and gives an extra CR. Use int() to deal with
-        if len(resp) == 0:
-            logging.error('%s: empty response',self.name)
-        elif int(resp[-3:-1]) != int(self.address):
+        if int(resp[-3:-1]) != int(self.address):
             logging.error('%s: response has incorrect address',self.name)
         elif resp[-1] == ':' or resp[-1] == '>' or resp[-1] == '<':
             self.targetvolume = float(targetvolume)
@@ -251,7 +248,7 @@ class Pump:
         while True:
             # Read once
             self.serialcon.write(self.address + 'VOL\r')
-            resp1 = self.serialcon.read(15)
+            resp1 = self.read(15)
 
             if ':' in resp1 and i == 0:
                 logging.error('%s: not infusing/withdrawing - infuse or withdraw first',self.name)
@@ -262,7 +259,7 @@ class Pump:
 
             # Read again
             self.serialcon.write(self.address + 'VOL\r')
-            resp2 = self.serialcon.read(15)
+            resp2 = self.read(15)
 
             # Check if they're the same - if they are, break, otherwise continue
             if resp1 == resp2:
@@ -281,7 +278,7 @@ class PHD2000(Pump):
     def stop(self):
         """Stop pump."""
         self.write('STP')
-        resp = self.serialcon.read(5)
+        resp = self.read(5)
         
         if resp[-1] != '*':
             logging.error('%s: unexpected response to stop',self.name)
@@ -299,7 +296,7 @@ class PHD2000(Pump):
             logging.warning('%s: target volume truncated to %s mL',self.name,targetvolume)
 
         self.write('MLT' + targetvolume)
-        resp = self.serialcon.read(5)
+        resp = self.read(5)
 
         # response should be CRLFXX:, CRLFXX>, CRLFXX< where XX is address
         # Pump11 replies with leading zeros, e.g. 03, but PHD2000 misbehaves and 
