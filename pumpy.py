@@ -19,18 +19,22 @@ def remove_crud(string):
 
     return string
 
-class Chain:
+class Chain(serial.Serial):
     """Create Chain object.
 
-    Harvard syring pumps are daisy chained together in a 'pump chain'
+    Harvard syringe pumps are daisy chained together in a 'pump chain'
     off a single serial port. A pump address is set on each pump. You
     must first create a chain to which you then add Pump objects.
+
+    Chain is a subclass of serial.Serial. Chain creates a serial.Serial
+    instance with the required parameters, flushes input and output
+    buffers (found during testing that this fixes a lot of problems) and
+    logs creation of the Chain.
     """
-    def __init__(self, port, stopbits=serial.STOPBITS_TWO):
-        self.serialcon = serial.Serial(port=port, stopbits=stopbits,
-                                       parity=serial.PARITY_NONE, timeout=2)
-        self.serialcon.flushOutput()
-        self.serialcon.flushInput()
+    def __init__(self, port):
+        serial.Serial.__init__(self,port=port, stopbits=serial.STOPBITS_TWO, parity=serial.PARITY_NONE, timeout=2)
+        self.flushOutput()
+        self.flushInput()
         logging.info('Chain created on %s',port)
 
 class Pump:
@@ -45,7 +49,7 @@ class Pump:
     """
     def __init__(self, chain, address=0, name='Pump 11'):
         self.name = name
-        self.serialcon = chain.serialcon
+        self.serialcon = chain
         self.address = '{0:02.0f}'.format(address)
         self.diameter = None
         self.flowrate = None
