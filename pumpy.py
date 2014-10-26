@@ -174,10 +174,10 @@ class Pump:
                 logging.info('%s: flow rate set to %s uL/min', self.name,
                               self.flowrate)
         elif 'OOR' in resp:
-            logging.error('%s: flow rate (%s uL/min) is out of range',
-                           self.name, flowrate)
+            raise PumpError('%s: flow rate (%s uL/min) is out of range' %
+                           (self.name, flowrate))
         else:
-            logging.error('%s: unknown response', self.name)
+            raise PumpError('%s: unknown response' % self.name)
             
     def infuse(self):
         """Start infusing pump."""
