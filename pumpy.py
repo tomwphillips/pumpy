@@ -137,7 +137,7 @@ class Pump:
                 logging.info('%s: diameter set to %s mm', self.name,
                              self.diameter)
         else:
-            logging.error('%s: unknown response', self.name)
+            raise PumpError('%s: unknown response to setdiameter' % self.name)
 
     def setflowrate(self, flowrate):
         """Set flow rate (microlitres per minute).
