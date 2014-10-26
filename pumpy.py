@@ -63,7 +63,7 @@ class Pump:
             self.write('VER')
             resp = self.read(17)
 
-            if resp[-3:-1] != self.address:
+            if int(resp[-3:-1]) != int(self.address):
                 raise PumpError('No response from pump at address %s' %
                                 self.address)
         except PumpError:
