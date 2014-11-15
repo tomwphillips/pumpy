@@ -15,9 +15,6 @@ Python RS–232 interface for Harvard Pump 11, Pump 11 Plus, PHD2000 syringe pum
 	* top
 * Supports [`logging`](https://ocs.python.org/2/library/logging.html) to record all operations.
 
-## Licence
-[Creative Commons Attribution 4.0 International License (CC-BY 4.0)](http://creativecommons.org/licenses/by/4.0/deed.en_US)
-
 ## Requirements
 * Python 2.7.3 or higher
 * [PySerial](http://pyserial.sourceforge.net) 2.6 or higher
