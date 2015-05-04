@@ -36,9 +36,39 @@ Pumpy allows you to control your Harvard syringe pump or Mighty Mini piston pump
 
 ## Usage
 
-Use `import pumpy` in your code or run `python -m pumpy --help` to see command line options.
+Run `python -m pumpy --help` to see command line options.
+
+Alternatively you can use it in your existing code:
+
+```
+
+chain = pumpy.Chain('/dev/tty.usbserial-FTWOFH91A')
+
+p11 = pumpy.Pump(chain,address=1) 
+p11.setdiameter(10)
+p11.setflowrate(2000)
+p11.settargetvolume(200)
+p11.infuse()
+p11.waituntiltarget()
+p11.withdraw()
+p11.waituntiltarget()
+
+phd = pumpy.PHD2000(chain,address=4)
+phd.setdiameter(24)
+phd.setflowrate(600)
+phd.infuse()
+phd.stop()
+phd.withdraw()
+phd.stop()
+phd.settargetvolume(100)
+phd.infuse()
+phd.waituntiltarget()
+
+chain.close()
+```
 
 ## Known Issues
+
 1. Harvard PHD2000 supports higher precision when setting flow rates/diameters than the Pump 11. At present everything is truncated for compatibility with the Pump 11.
 2. PHD2000 requires "withdraw, stop, infuse" rather than "withdraw, infuse" otherwise it doesn't respond.
 3. PHD2000 will only take notice of target volumes when it has been put into volume mode using the keypad.
