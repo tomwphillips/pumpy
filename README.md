@@ -31,9 +31,7 @@ Pumpy allows you to control your Harvard syringe pump or Mighty Mini piston pump
 * Cable to connect your pump. See the pump manual for the correct wiring.
 
 ## Usage
-1. Command line interface. Run `python pumpy.py -h` for options.
-2. Clone pumpy into your working directory and then use `import pumpy.pumpy` in your script to call the functions. See `example.py`. I suggest you use `git submodule` if working in a git repository.
-3. Use the included LabVIEW VI, which calls ``pumpy.py``.
+Download source code then run `python setup.py install` to install. Use `import pumpy` in your code or run `python -m pumpy --help` to see command line options.
 
 ## Known Issues
 1. Harvard PHD2000 supports higher precision when setting flow rates/diameters than the Pump 11. At present everything is truncated for compatibility with the Pump 11.
