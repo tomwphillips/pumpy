@@ -14,4 +14,10 @@ config = {
     'install_requires': ['pyserial>=2.7'],
 }
 
-setup(**config)
+setup(classifiers=[
+        'Programming Language :: Python',
+        'Operating System :: OS Independent',
+        'Intended Audience :: Science/Research',
+        'License :: OSI Approved :: MIT License',
+        'Topic :: Scientific/Engineering'],
+        **config)
