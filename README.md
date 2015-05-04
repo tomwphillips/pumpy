@@ -41,7 +41,6 @@ Run `python -m pumpy --help` to see command line options.
 Alternatively you can use it in your existing code:
 
 ```
-
 chain = pumpy.Chain('/dev/tty.usbserial-FTWOFH91A')
 
 p11 = pumpy.Pump(chain,address=1) 
