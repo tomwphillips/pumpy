@@ -5,13 +5,14 @@ except ImportError:
 
 config = {
     'name': 'pumpy',
-    'version': '1.1.2',
+    'version': '1.1.3',
     'description': 'Python RS-232 interface for Harvard syringe pumps',
     'url': 'https://github.com/tomwphillips/pumpy',
     'author': 'Tom W Phillips',
     'author_email': 'me@tomwphillips.co.uk',
     'license': 'MIT',
     'install_requires': ['pyserial>=2.7'],
+    'py_modules': ['pumpy']
 }
 
 setup(classifiers=[
