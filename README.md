@@ -44,11 +44,11 @@ Alternatively you can use it in your existing code:
 chain = pumpy.Chain('/dev/tty.usbserial-FTWOFH91A')
 
 p11 = pumpy.Pump(chain,address=1) 
-p11.setdiameter(10)
-p11.setflowrate(2000)
-p11.settargetvolume(200)
+p11.setdiameter(10)  # mm
+p11.setflowrate(2000)  ## microL/min
+p11.settargetvolume(200)  ## microL
 p11.infuse()
-p11.waituntiltarget()
+p11.waituntiltarget()  ## blocks until target reached
 p11.withdraw()
 p11.waituntiltarget()
 
