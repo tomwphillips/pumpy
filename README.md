@@ -2,6 +2,14 @@
 
 Pumpy allows you to control your Harvard syringe pump or Mighty Mini piston pump from your computer over an RS-232 interface.
 
+## pumpy is no longer maintained
+
+Occasionally I receive pull requests and issues but because I don't work in a lab anymore I have no way to test them.
+I also wrote Pumpy when I was a relatively novice Python programmer (there aren't any automated tests for a start) so it needs a lot of work.
+Hence I'm no longer maintaining pumpy.
+
+That said, there's no reason why it shouldn't still work with the pumps below. If it doens't work, pumpy is MIT licensed so you're free to make and distribute your own changes.
+
 ## Supported pumps
 
 * Harvard Pump 11
